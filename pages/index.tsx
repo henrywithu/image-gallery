@@ -57,7 +57,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
               </span>
               <span className="absolute left-0 right-0 bottom-0 h-[400px] bg-gradient-to-b from-black/0 via-black to-black"></span>
             </div>
-            <Logo />
+            {/* <Logo /> */}
             <h1 className="mt-8 mb-4 text-base font-bold uppercase tracking-widest">
               Trapnest
             </h1>
@@ -73,7 +73,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
               Visit
             </a>
           </div>
-          {/* {images.map(({ id, public_id, format, blurDataUrl }) => (
+          {images.map(({ id, public_id, format, blurDataUrl }) => (
             <Link
               key={id}
               href={`/?photoId=${id}`}
@@ -97,7 +97,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
                   25vw"
               />
             </Link>
-          ))} */}
+          ))}
         </div>
       </main>
       <footer className="p-6 text-center text-white/80 sm:p-12">
