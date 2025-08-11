@@ -73,7 +73,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
               Visit
             </a>
           </div>
-          {images.map(({ id, public_id, format, blurDataUrl }) => (
+          {/* {images.map(({ id, public_id, format, blurDataUrl }) => (
             <Link
               key={id}
               href={`/?photoId=${id}`}
@@ -97,7 +97,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
                   25vw"
               />
             </Link>
-          ))}
+          ))} */}
         </div>
       </main>
       <footer className="p-6 text-center text-white/80 sm:p-12">
