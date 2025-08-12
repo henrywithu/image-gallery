@@ -1,4 +1,10 @@
 # Dockerfile for Next.js application
+FROM node:20-alpine
+
+# Install build tools needed for some npm packages to compile from source.
+# 'build-base' provides a C compiler (gcc), 'nasm' is an assembler, and
+# 'autoconf' and 'automake' are part of the GNU Build System.
+RUN apk add --no-cache build-base nasm autoconf automake
 
 # 1. Builder Stage: Build the application
 FROM node:20-alpine AS builder
