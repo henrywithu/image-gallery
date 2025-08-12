@@ -2,6 +2,10 @@
 # Use official Node.js LTS image
 FROM node:20-alpine
 
+# Install build tools needed for some npm packages to compile from source.
+# This is a common requirement for "alpine" based images.
+RUN apk add --no-cache build-base
+
 # Set working directory
 WORKDIR /app
 
@@ -27,7 +31,6 @@ RUN --mount=type=secret,id=CLOUDINARY_API_KEY \
     export CLOUDINARY_API_SECRET=$(cat /run/secrets/CLOUDINARY_API_SECRET) && \
     export NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$(cat /run/secrets/NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) && \
     export CLOUDINARY_FOLDER=$(cat /run/secrets/CLOUDINARY_FOLDER) && \
-    pnpm build
 
 # Build the Next.js app
 RUN npm run build
