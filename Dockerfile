@@ -10,6 +10,9 @@ WORKDIR /app
 # For Next.js on Alpine, libc6-compat is recommended for compatibility
 RUN apk add --no-cache libc6-compat
 
+# Install build tools required for native dependencies like imagemin
+RUN apk add --no-cache python3 make g++
+
 # Copy package.json and the lock file
 COPY package.json package-lock.json* ./
 
