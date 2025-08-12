@@ -3,8 +3,8 @@
 FROM node:20-alpine
 
 # Install build tools needed for some npm packages to compile from source.
-# This is a common requirement for "alpine" based images.
-RUN apk add --no-cache build-base
+# 'build-base' provides a C compiler (gcc) and 'nasm' is a required assembler.
+RUN apk add --no-cache build-base nasm
 
 # Set working directory
 WORKDIR /app
