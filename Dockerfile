@@ -3,8 +3,9 @@
 FROM node:20-alpine
 
 # Install build tools needed for some npm packages to compile from source.
-# 'build-base' provides a C compiler (gcc) and 'nasm' is a required assembler.
-RUN apk add --no-cache build-base nasm
+# 'build-base' provides a C compiler (gcc), 'nasm' is an assembler, and
+# 'autoconf' and 'automake' are part of the GNU Build System.
+RUN apk add --no-cache build-base nasm autoconf automake
 
 # Set working directory
 WORKDIR /app
