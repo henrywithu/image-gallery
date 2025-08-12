@@ -1,66 +1,39 @@
-# Dockerfile for Next.js project
+# Dockerfile for Next.js application
+# Use official Node.js LTS image
+FROM node:20-alpine
 
-# ---- Base Stage ----
-FROM node:18-alpine AS base
-
-# ---- Dependencies Stage ----
-# Install dependencies first, in a separate step to take advantage of Docker's caching.
-FROM base AS deps
+# Set working directory
 WORKDIR /app
 
-# Install build tools needed for some native Node.js modules.
-RUN apk add --no-cache python3 make g++
+# Install dependencies
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+RUN if [ -f package-lock.json ]; then npm ci; \
+    elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm install; \
+    elif [ -f yarn.lock ]; then yarn install; \
+    else npm install; fi
 
-# Copy package manager files
-COPY package.json package-lock.json* ./
-
-# Install dependencies using `npm ci` for faster, more reliable builds.
-RUN npm ci
-
-# ---- Builder Stage ----
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-
-# Copy dependencies from the 'deps' stage
-COPY --from=deps /app/node_modules ./node_modules
+# Copy the rest of the application
 COPY . .
 
-# These ARGs are passed from the GitHub Actions workflow during the build
-# NEXT_PUBLIC_ vars are inlined by Next.js at build time and are safe to be public.
-ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-ARG CLOUDINARY_FOLDER
-
-# Set public environment variables for the build process.
-ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-ENV CLOUDINARY_FOLDER=$CLOUDINARY_FOLDER
-
-# Build the application using secrets for API keys.
-# Secrets are mounted securely from the build context and are not stored in image layers.
+# Build the application.
+# Secrets are mounted securely using Docker BuildKit's --mount=type=secret.
+# They are only available during this RUN command and are not stored in the image layers.
+# The GitHub Actions workflow provides these secrets.
 RUN --mount=type=secret,id=CLOUDINARY_API_KEY \
     --mount=type=secret,id=CLOUDINARY_API_SECRET \
+    --mount=type=secret,id=NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME \
+    --mount=type=secret,id=CLOUDINARY_FOLDER \
     export CLOUDINARY_API_KEY=$(cat /run/secrets/CLOUDINARY_API_KEY) && \
     export CLOUDINARY_API_SECRET=$(cat /run/secrets/CLOUDINARY_API_SECRET) && \
-    npm run build
+    export NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$(cat /run/secrets/NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) && \
+    export CLOUDINARY_FOLDER=$(cat /run/secrets/CLOUDINARY_FOLDER) && \
+    pnpm build
 
-# ---- Runner Stage ----
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
+# Build the Next.js app
+RUN npm run build
 
-ENV NODE_ENV=production
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
-
+# Expose port (default for Next.js)
 EXPOSE 3000
 
-ENV PORT=3000
-
-CMD ["node", "server.js"]
+# Start the Next.js app
+CMD ["npm", "start"]
