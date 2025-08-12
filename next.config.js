@@ -4,9 +4,7 @@ module.exports = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        port: "",
-        pathname: "/drmcshskh/**",
-        search: "",
+        pathname: `/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/**`,
       },
     ],
   },
