@@ -1,3 +1,9 @@
+const nextConfig = {
+  reactStrictMode: true,
+  // This is the crucial part for Docker optimization
+  output: 'standalone',
+};
+
 module.exports = {
   images: {
     remotePatterns: [
