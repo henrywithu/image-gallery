@@ -1,61 +1,43 @@
-# Dockerfile for the Next.js Image Gallery
+# Dockerfile
 
-# ---- Builder Stage ----
-# This stage installs dependencies and builds the application.
-FROM node:18-alpine AS builder
-
-# Set working directory
+# Builder stage
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# For Next.js on Alpine, libc6-compat is recommended for compatibility
-RUN apk add --no-cache libc6-compat
-
-# Install build tools required for native dependencies like imagemin
-RUN apk add --no-cache python3 make g++
-
-# Copy package.json and the lock file
+# Install dependencies
+# Copy package files and install dependencies to leverage Docker layer caching.
 COPY package.json package-lock.json* ./
-
-# Install all dependencies using npm ci for reproducible builds
 RUN npm ci
 
 # Copy the rest of the application source code
 COPY . .
 
-# Provide Cloudinary credentials as build arguments.
-# These are required for getStaticProps to fetch images during the build.
+# Declare build arguments passed from the GitHub Actions workflow
 ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 ARG CLOUDINARY_API_KEY
 ARG CLOUDINARY_API_SECRET
 ARG CLOUDINARY_FOLDER
 
-# Disable Next.js telemetry during the build
-ENV NEXT_TELEMETRY_DISABLED 1
+# Set environment variables for the build process
+ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ENV CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY
+ENV CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET
+ENV CLOUDINARY_FOLDER=$CLOUDINARY_FOLDER
 
-# Build the Next.js application.
-# The build-time ARGs are automatically available as environment variables.
+# Build the Next.js app. The standalone output will be in /app/.next/standalone
 RUN npm run build
 
-# Remove development dependencies to reduce the size of node_modules
-RUN npm prune --production
-
-# ---- Runner Stage ----
-# This is the final stage that creates the lean production image.
-FROM node:18-alpine AS runner
+# Runner stage
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
+# Copy the standalone output from the builder stage.
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
 
-USER nextjs
 EXPOSE 3000
-ENV PORT 3000
-CMD ["npm", "start"]
+
+CMD ["node", "server.js"]

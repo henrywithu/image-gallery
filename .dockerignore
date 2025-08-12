@@ -1,19 +1,6 @@
-# Git
-.git
-.gitignore
-
-# Docker
 Dockerfile
 .dockerignore
-
-# Dependencies
 node_modules
-
-# Build artifacts
+.git
 .next
-npm-debug.log*
-
-# Local environment
-.env*.local
-
 README.md
