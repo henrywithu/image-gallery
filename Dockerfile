@@ -31,7 +31,7 @@ RUN --mount=type=secret,id=CLOUDINARY_API_KEY \
     export CLOUDINARY_API_KEY=$(cat /run/secrets/CLOUDINARY_API_KEY) && \
     export CLOUDINARY_API_SECRET=$(cat /run/secrets/CLOUDINARY_API_SECRET) && \
     export NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$(cat /run/secrets/NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) && \
-    export CLOUDINARY_FOLDER=$(cat /run/secrets/CLOUDINARY_FOLDER) && \
+    export CLOUDINARY_FOLDER=$(cat /run/secrets/CLOUDINARY_FOLDER)
 
 # Build the Next.js app
 RUN npm run build
